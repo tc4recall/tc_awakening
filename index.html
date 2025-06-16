@@ -367,6 +367,16 @@
                     showPage('page2', true, parsedTargetCount, parsedPrevCount); // 播放動畫
                 } else {
                     showPage('page1'); // 預設顯示第一頁 (輸入頁)
+                    // 在 showPage('page1') 前面或附近加入這段程式碼
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const displayMode = urlParams.get('mode'); // 檢查 URL 中是否有 ?mode=display
+                    
+                    if (displayMode === 'display') {
+                        showPage('page2', false, currentGlobalCount); // 直接顯示第二頁，不播放動畫，顯示當前總數
+                    } else {
+                        showPage('page1'); // 預設顯示第一頁 (輸入頁)
+                    }
+                    
                 }
 
             } catch (error) {
