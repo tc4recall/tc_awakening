@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>台中覺醒｜展翅廢翔</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden; /* Prevent scrollbar */
+            /* Radiant gradient background for this page */
+            background: radial-gradient(circle at center, #fffbe0 0%, #fff1c8 25%, #ffda9f 50%, #ffc280 75%, #ffad66 100%);
+        }
+
+        .section {
+            width: calc(100% - 40px); /* Fill content width */
+            height: calc(100vh - 40px); /* Fill content height */
+            padding: 40px; /* Keep padding for content inside */
+            text-align: center;
+            
+            /* Use flexbox for vertical centering of content */
+            display: flex;
+            flex-direction: column;
+            justify-content: center; /* Vertically center content */
+            align-items: center; /* Horizontally center content */
+            
+            /* Text colors for elements on this page */
+            color: #4a0e0e; /* Default text color */
+            text-shadow: 1px 1px 3px rgba(255, 255, 255, 0.5); /* Subtle white text shadow */
+        }
+
+        h1 {
+            color: #73bda6; /* Requested color for title */
+            font-size: 2.8rem; /* Larger title */
+            line-height: 1.2;
+            margin-bottom: 20px;
+            font-weight: 900; /* Extra bold for the title */
+            white-space: nowrap; /* Keep title on one line */
+            overflow: hidden; /* Hide overflow if too long */
+            text-overflow: ellipsis; /* Add ellipsis if hidden */
+        }
+        #animatedDisplayCount {
+            font-size: 10rem; /* Even larger number */
+            font-weight: 900;
+            line-height: 1;
+            margin-bottom: 15px; /* Adjust margin for spacing */
+            color: #202726; /* Requested color for number */
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.8), 0 0 25px rgba(255, 255, 255, 0.6); /* White glow */
+            letter-spacing: -2px;
+            text-align: center; /* Ensure it is centered */
+        }
+        .secondary-text {
+            font-size: 1.8rem;
+            color: #d66b33; /* Requested color for secondary text */
+            font-weight: 700;
+            opacity: 0.9;
+            margin-top: 30px; /* Moved further down */
+        }
+
+        /* Button styling for "返回輸入頁" */
+        .button-glow {
+            transition: all 0.3s ease;
+        }
+        .button-glow:hover {
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.6);
+            transform: translateY(-2px);
+        }
+
+        /* Animation for count up */
+        @keyframes countUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .animate-count-up {
+            animation: countUp 0.5s ease-out forwards;
+        }
+    </style>
+</head>
+<body>
+    <div class="section">
+        <h1 class="font-extrabold mb-4">台中覺醒｜展翅廢翔</h1>
+        <div id="animatedDisplayCount" class="animate-count-up">0</div>
+        <p class="secondary-text mt-4">個西屯南屯人同意罷免</p>
+        <button id="backButton"
+                class="mt-8 bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-5 rounded-lg shadow-md button-glow
+                       focus:outline-none focus:ring-4 focus:ring-gray-300 transition duration-150 ease-in-out">
+            返回輸入頁
+        </button>
+    </div>
+
+    <script type="module">
+        // 數字動畫效果
+        function animateCount(targetCount, initialCount) {
+            console.log(`動畫計數從 ${initialCount} 到 ${targetCount}`);
+            let startCount = initialCount;
+            // 如果差距太大 (>50)，則從目標數字 - 50 開始動畫
+            if (targetCount - initialCount > 50) {
+                startCount = Math.max(0, targetCount - 50);
+                console.log(`動畫起始計數調整為: ${startCount}`);
+            }
+            
+            const duration = 500; // 動畫持續時間 (毫秒) - 0.5 秒
+            let startTime = null;
+            const animatedDisplayCountElement = document.getElementById('animatedDisplayCount');
+
+            function step(currentTime) {
+                if (!startTime) startTime = currentTime;
+                const progress = (currentTime - startTime) / duration;
+
+                if (progress < 1) {
+                    const animatedValue = Math.floor(startCount + (targetCount - startCount) * progress);
+                    animatedDisplayCountElement.textContent = animatedValue;
+                    requestAnimationFrame(step);
+                } else {
+                    animatedDisplayCountElement.textContent = targetCount; // 確保最終顯示目標數字
+                    console.log(`動畫結束。最終計數: ${targetCount}`);
+                }
+            }
+            requestAnimationFrame(step);
+        }
+
+        // 頁面載入時的初始化邏輯
+        window.onload = function() {
+            console.log("Display page loaded. Current URL:", window.location.href);
+            const urlParams = new URLSearchParams(window.location.search);
+            const prevCountParam = urlParams.get('prevCount');
+            const targetCountParam = urlParams.get('targetCount');
+
+            const parsedPrevCount = parseInt(prevCountParam) || 0;
+            const parsedTargetCount = parseInt(targetCountParam) || 0;
+
+            // 確保目標計數至少為 50000
+            const finalTargetCount = Math.max(50000, parsedTargetCount);
+            // 確保動畫起始點不會超過目標數字
+            const finalPrevCount = Math.min(finalTargetCount, Math.max(50000, parsedPrevCount));
+            
+
+            console.log("Parsed prevCount:", parsedPrevCount, "Parsed targetCount:", parsedTargetCount);
+            console.log("Final animation from:", finalPrevCount, "to:", finalTargetCount);
+
+            // 播放數字動畫
+            animateCount(finalTargetCount, finalPrevCount);
+
+            // 添加返回按鈕事件監聽器
+            const backButton = document.getElementById('backButton');
+            backButton.addEventListener('click', () => {
+                console.log("點擊了返回按鈕！");
+                // 返回 index.html
+                window.location.href = `./index.html`;
+            });
+        };
+    </script>
+</body>
+</html>
