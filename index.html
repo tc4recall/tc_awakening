@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>互動式計數器</title>
+    <title>你同意罷免親共立委嗎？</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800;900&display=swap" rel="stylesheet">
@@ -16,114 +16,24 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            overflow: hidden; /* Prevent scrollbar when pages overlap */
-            transition: background 0.5s ease-in-out; /* Smooth background transition */
+            overflow: hidden; /* Prevent scrollbar */
+            /* Gold gradient background for this page */
+            background: linear-gradient(to bottom right, #fcf6ba, #f7d794, #f5c476);
         }
 
-        /* Dynamic body backgrounds based on active page */
-        body.page1-bg {
-            background: linear-gradient(to bottom right, #fcf6ba, #f7d794, #f5c476); /* Gold gradient for page 1 */
-        }
-
-        body.page2-bg {
-            background: radial-gradient(circle at center, #fffbe0 0%, #fff1c8 25%, #ffda9f 50%, #ffc280 75%, #ffad66 100%); /* Radiant gradient for page 2 */
-        }
-
-        /* Container for both pages, adjusted for responsive padding */
-        .page-container {
-            width: 100%;
-            max-width: 900px; /* Maximum width of the content area */
-            padding: 20px; /* Padding inside the container */
-            box-sizing: border-box;
-            position: relative;
-            display: flex; /* Use flexbox to center content */
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
-
-        /* Common section styling */
         .section {
-            padding: 40px;
-            text-align: center;
-            position: absolute; /* Pages will overlap */
-            transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%); /* Center horizontally and vertically */
-        }
-
-        /* Page 1 specific styling - this will be the "card" */
-        #page1.section {
-            /* Adjusted width to be 50% of its parent (page-container's content area)
-               This creates a 25% margin on both sides visually within the 900px max-width area */
-            width: 50%;
+            width: 50%; /* Adjusted width to be 50% of parent */
             min-width: 300px; /* Ensure a minimum readable width on smaller screens */
-            background: linear-gradient(to bottom right, #fffde7, #fff9c4, #ffe082); /* Gold gradient for page 1 card */
+            background: linear-gradient(to bottom right, #fffde7, #fff9c4, #ffe082); /* Gold gradient for the card */
             border-radius: 20px;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-            color: #333; /* Default text color for page 1 */
+            padding: 40px;
+            text-align: center;
+            color: #333; /* Default text color for this page */
+            box-sizing: border-box; /* Include padding in width */
         }
 
-        /* Page 2 specific styling - now transparent and relies on body background */
-        #page2.section {
-            width: calc(100% - 40px); /* Fill page-container's content width */
-            height: calc(100vh - 40px); /* Fill page-container's content height */
-            
-            background-color: transparent; /* Remove its own background */
-            border-radius: 0;
-            box-shadow: none;
-            border: none;
-            
-            /* Use flexbox for vertical centering of content */
-            display: flex;
-            flex-direction: column;
-            justify-content: center; /* Vertically center content */
-            align-items: center; /* Horizontally center content */
-            
-            /* Text colors for page 2 elements, now directly applied */
-            color: #4a0e0e; /* Default text color for page 2 */
-            text-shadow: 1px 1px 3px rgba(255, 255, 255, 0.5); /* Subtle white text shadow */
-        }
-
-        #page2 h1 {
-            color: #73bda6; /* Changed to requested color */
-            font-size: 2.8rem; /* Larger title */
-            line-height: 1.2;
-            margin-bottom: 20px;
-            font-weight: 900; /* Ensure extra bold for the title */
-            white-space: nowrap; /* Keep title on one line */
-            overflow: hidden; /* Hide overflow if it's too long */
-            text-overflow: ellipsis; /* Add ellipsis if hidden */
-        }
-        #page2 #animatedDisplayCount {
-            font-size: 10rem; /* Even larger number */
-            font-weight: 900;
-            line-height: 1;
-            margin-bottom: 15px; /* Adjust margin for spacing */
-            color: #202726; /* Changed to requested color */
-            text-shadow: 0 0 15px rgba(255, 255, 255, 0.8), 0 0 25px rgba(255, 255, 255, 0.6); /* Adjusted to white glow */
-            letter-spacing: -2px;
-            text-align: center; /* Ensure it is centered */
-        }
-        #page2 .secondary-text {
-            font-size: 1.8rem;
-            color: #d66b33; /* Changed to requested color */
-            font-weight: 700;
-            opacity: 0.9;
-            margin-top: 30px; /* Moved further down */
-        }
-
-        /* Button specific styling */
-        .button-glow {
-            transition: all 0.3s ease;
-        }
-        .button-glow:hover {
-            box-shadow: 0 0 15px rgba(59, 130, 246, 0.6);
-            transform: translateY(-2px);
-        }
-
-        /* Red circular 3D button for Page 1 */
+        /* Red circular 3D button */
         #enterButton.red-circle-button {
             background-color: #dc2626; /* Red-600 */
             border-radius: 9999px; /* Fully rounded for circle */
@@ -159,7 +69,6 @@
             transform: translateY(2px) translateZ(0); /* Press down */
         }
 
-
         /* Message box styling */
         .message-box {
             position: fixed;
@@ -180,44 +89,17 @@
             opacity: 1;
             visibility: visible;
         }
-
-        /* Animation for count up */
-        @keyframes countUp {
-            from { transform: translateY(20px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-        .animate-count-up {
-            animation: countUp 0.5s ease-out forwards;
-        }
     </style>
 </head>
 <body>
-    <div class="page-container">
-        <!-- Page 1: 裝置模擬區 (Input Page) -->
-        <div id="page1" class="section">
-            <h2 class="text-3xl font-bold text-gray-800 mb-6">你同意罷免親共立委嗎？</h2>
-            <p class="text-lg text-gray-700 mb-4">目前的同意人數: <span id="deviceCount" class="font-bold text-blue-600">載入中...</span></p>
-            <button id="enterButton"
-                    class="red-circle-button mx-auto mb-4">
-                我同意
-            </button>
-            <p class="text-sm text-gray-500 mt-4">按下按鈕，讓魔法出現吧</p>
-            <p class="text-sm mt-4 text-gray-500 opacity-70">
-                <!-- Removed User ID display as it's not applicable without Firebase -->
-            </p>
-        </div>
-
-        <!-- Page 2: 總數顯示區 (Display Page) -->
-        <div id="page2" class="section hidden">
-            <h1 class="font-extrabold mb-4">台中覺醒｜展翅廢翔</h1>
-            <div id="animatedDisplayCount" class="animate-count-up">0</div>
-            <p class="secondary-text mt-4">個西屯南屯人同意罷免</p>
-            <button id="backButton"
-                    class="mt-8 bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-5 rounded-lg shadow-md button-glow
-                           focus:outline-none focus:ring-4 focus:ring-gray-300 transition duration-150 ease-in-out">
-                返回輸入頁
-            </button>
-        </div>
+    <div class="section">
+        <h2 class="text-3xl font-bold text-gray-800 mb-6">你同意罷免親共立委嗎？</h2>
+        <p class="text-lg text-gray-700 mb-4">目前的同意人數: <span id="deviceCount" class="font-bold text-blue-600">載入中...</span></p>
+        <button id="enterButton"
+                class="red-circle-button mx-auto mb-4">
+            我同意
+        </button>
+        <p class="text-sm text-gray-500 mt-4">按下按鈕，讓魔法出現吧</p>
     </div>
 
     <!-- Custom Message Box -->
@@ -227,15 +109,11 @@
         // 計數器狀態變數，現在儲存在瀏覽器記憶體中
         let currentGlobalCount = 50000; // 從 50000 開始計算
 
-        const page1 = document.getElementById('page1');
-        const page2 = document.getElementById('page2');
         const enterButton = document.getElementById('enterButton');
-        const backButton = document.getElementById('backButton');
         const deviceCountElement = document.getElementById('deviceCount');
-        const animatedDisplayCountElement = document.getElementById('animatedDisplayCount');
         const messageBox = document.getElementById('messageBox');
 
-        // 顯示訊息框（現在只用於通用訊息，而非 Firebase 錯誤）
+        // 顯示訊息框
         function showMessage(message, duration = 3000) {
             messageBox.textContent = message;
             messageBox.classList.add('show');
@@ -244,95 +122,30 @@
             }, duration);
         }
 
-        // 頁面切換邏輯
-        function showPage(pageId, animate = false, targetCount = 0, initialCount = 0) {
-            console.log(`嘗試顯示頁面: ${pageId}, 動畫: ${animate}, 目標計數: ${targetCount}, 初始計數: ${initialCount}`);
-
-            // 確保兩個頁面都被正確管理
-            if (pageId === 'page1') {
-                page1.classList.remove('hidden');
-                page1.style.opacity = '1';
-                page2.classList.add('hidden');
-                page2.style.opacity = '0';
-
-                // 設定 body 背景為 page1 的漸層
-                document.body.classList.add('page1-bg');
-                document.body.classList.remove('page2-bg');
-                
-                // 更新 page1 上的計數顯示
-                deviceCountElement.textContent = currentGlobalCount;
-                console.log("Page 1 現在可見。");
-
-            } else if (pageId === 'page2') {
-                page1.classList.add('hidden');
-                page1.style.opacity = '0';
-                page2.classList.remove('hidden');
-                page2.style.opacity = '1';
-
-                // 設定 body 背景為 page2 的漸層
-                document.body.classList.add('page2-bg');
-                document.body.classList.remove('page1-bg');
-
-                console.log("Page 2 現在可見。");
-
-                if (animate) {
-                    animateCount(targetCount, initialCount); // 傳遞初始值和目標值給動畫
-                } else {
-                    // 如果沒有動畫，直接顯示最新數字
-                    animatedDisplayCountElement.textContent = currentGlobalCount;
-                }
-            }
-        }
-
-        // 數字動畫效果
-        function animateCount(targetCount, initialCount) {
-            console.log(`動畫計數從 ${initialCount} 到 ${targetCount}`);
-            let startCount = initialCount;
-            // 如果差距太大 (>50)，則從目標數字 - 50 開始動畫
-            if (targetCount - initialCount > 50) {
-                startCount = Math.max(0, targetCount - 50);
-                console.log(`動畫起始計數調整為: ${startCount}`);
-            }
-            
-            const duration = 500; // 動畫持續時間 (毫秒) - 0.5 秒
-            let startTime = null;
-
-            function step(currentTime) {
-                if (!startTime) startTime = currentTime;
-                const progress = (currentTime - startTime) / duration;
-
-                if (progress < 1) {
-                    const animatedValue = Math.floor(startCount + (targetCount - startCount) * progress);
-                    animatedDisplayCountElement.textContent = animatedValue;
-                    requestAnimationFrame(step);
-                } else {
-                    animatedDisplayCountElement.textContent = targetCount; // 確保最終顯示目標數字
-                    console.log(`動畫結束。最終計數: ${targetCount}`);
-                }
-            }
-            requestAnimationFrame(step);
-        }
-
         // 頁面載入時的初始化邏輯
         window.onload = function() {
-            console.log("視窗已載入。當前 URL:", window.location.href);
-            const urlParams = new URLSearchParams(window.location.search);
-            const displayMode = urlParams.get('mode');
-            const targetCountParam = urlParams.get('targetCount');
-            const prevCountParam = urlParams.get('prevCount'); // 獲取 prevCount 參數
+            console.log("Input page loaded. Current URL:", window.location.href);
+            // 由於這是獨立頁面，直接顯示當前計數 (客戶端儲存)
+            deviceCountElement.textContent = currentGlobalCount;
+        };
 
-            // 嘗試從 URL 參數中恢復 currentGlobalCount
-            if (targetCountParam !== null) {
-                currentGlobalCount = parseInt(targetCountParam) || 50000;
-            } else {
-                // 如果沒有 targetCount 參數，則預設為 50000
-                currentGlobalCount = 50000;
-            }
-            console.log("初始 currentGlobalCount (載入時):", currentGlobalCount);
+        // Enter 按鈕點擊事件處理
+        enterButton.addEventListener('click', () => {
+            console.log("點擊了 Enter 按鈕！");
+            enterButton.disabled = true; // 點擊後禁用按鈕
+            enterButton.textContent = '更新中...';
 
+            const countBeforeUpdate = currentGlobalCount; // 記錄更新前的數字
+            currentGlobalCount++; // 在客戶端增加計數
 
-            if (displayMode === 'display') {
-                console.log("URL 中偵測到顯示模式。");
-                const parsedPrevCount = parseInt(prevCountParam) || 0; // 解析 prevCount
-                const parsedTargetCount = currentGlobalCount; // 目標是當前總數
-                showPage('page2', true, parsedTargetCount, parsedP
+            showMessage(`數字已更新為: ${currentGlobalCount}`);
+            
+            // 重新導向到 display.html，並傳遞動畫所需的數字
+            // 注意：這裡假設 display.html 和 index.html 在同一個目錄下
+            const newUrl = `./display.html?prevCount=${countBeforeUpdate}&targetCount=${currentGlobalCount}`;
+            console.log("導航到新 URL:", newUrl);
+            window.location.href = newUrl;
+        });
+    </script>
+</body>
+</html>
