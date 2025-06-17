@@ -246,10 +246,12 @@
 
         // 頁面切換邏輯
         function showPage(pageId, animate = false, targetCount = 0, initialCount = 0) {
+            console.log(`Attempting to show page: ${pageId}, animate: ${animate}, targetCount: ${targetCount}, initialCount: ${initialCount}`);
+
+            // Ensure both pages are managed correctly
             if (pageId === 'page1') {
                 page1.classList.remove('hidden');
                 page1.style.opacity = '1';
-                // Ensure page2 is visually hidden and inactive
                 page2.classList.add('hidden');
                 page2.style.opacity = '0';
 
@@ -259,9 +261,9 @@
                 
                 // 更新 page1 上的計數顯示
                 deviceCountElement.textContent = currentGlobalCount;
+                console.log("Page 1 is now visible.");
 
             } else if (pageId === 'page2') {
-                // Ensure page1 is visually hidden and inactive
                 page1.classList.add('hidden');
                 page1.style.opacity = '0';
                 page2.classList.remove('hidden');
@@ -270,6 +272,8 @@
                 // 設定 body 背景為 page2 的漸層
                 document.body.classList.add('page2-bg');
                 document.body.classList.remove('page1-bg');
+
+                console.log("Page 2 is now visible.");
 
                 if (animate) {
                     animateCount(targetCount, initialCount); // 傳遞初始值和目標值給動畫
@@ -282,10 +286,12 @@
 
         // 數字動畫效果
         function animateCount(targetCount, initialCount) {
+            console.log(`Animating count from ${initialCount} to ${targetCount}`);
             let startCount = initialCount;
             // 如果差距太大 (>50)，則從目標數字 - 50 開始動畫
             if (targetCount - initialCount > 50) {
                 startCount = Math.max(0, targetCount - 50);
+                console.log(`Animation adjusted startCount to: ${startCount}`);
             }
             
             const duration = 500; // 動畫持續時間 (毫秒) - 0.5 秒
@@ -301,6 +307,7 @@
                     requestAnimationFrame(step);
                 } else {
                     animatedDisplayCountElement.textContent = targetCount; // 確保最終顯示目標數字
+                    console.log(`Animation finished. Final count: ${targetCount}`);
                 }
             }
             requestAnimationFrame(step);
@@ -308,6 +315,7 @@
 
         // 頁面載入時的初始化邏輯
         window.onload = function() {
+            console.log("Window loaded. Current URL:", window.location.href);
             const urlParams = new URLSearchParams(window.location.search);
             const displayMode = urlParams.get('mode');
             const targetCountParam = urlParams.get('targetCount');
@@ -320,35 +328,44 @@
                 // 如果沒有 targetCount 參數，則預設為 50000
                 currentGlobalCount = 50000;
             }
+            console.log("Initial currentGlobalCount (on load):", currentGlobalCount);
+
 
             if (displayMode === 'display') {
+                console.log("Display mode detected in URL.");
                 const parsedPrevCount = parseInt(prevCountParam) || 0; // 解析 prevCount
                 const parsedTargetCount = currentGlobalCount; // 目標是當前總數
                 showPage('page2', true, parsedTargetCount, parsedPrevCount); // 播放動畫
             } else {
+                console.log("Input mode detected in URL (default).");
                 showPage('page1'); // 預設顯示第一頁 (輸入頁)
             }
+
+            // 添加事件監聽器，確保它們在 DOM 加載後才綁定
+            enterButton.addEventListener('click', () => {
+                console.log("Enter button clicked!");
+                enterButton.disabled = true; // 點擊後禁用按鈕
+                enterButton.textContent = '更新中...';
+
+                const countBeforeUpdate = currentGlobalCount; // 記錄更新前的數字
+                currentGlobalCount++; // 在客戶端增加計數
+
+                showMessage(`數字已更新為: ${currentGlobalCount}`);
+                
+                // 重新導向到 Page 2 的 URL，並傳遞動畫所需的數字
+                const newUrl = `${window.location.origin}${window.location.pathname}?mode=display&prevCount=${countBeforeUpdate}&targetCount=${currentGlobalCount}`;
+                console.log("Navigating to new URL:", newUrl);
+                window.location.href = newUrl;
+            });
+
+            backButton.addEventListener('click', () => {
+                console.log("Back button clicked!");
+                // 返回第一頁的 URL (移除所有參數)
+                const newUrl = `${window.location.origin}${window.location.pathname}`;
+                console.log("Navigating back to:", newUrl);
+                window.location.href = newUrl;
+            });
         };
-
-        // Enter 按鈕點擊事件處理
-        enterButton.addEventListener('click', () => {
-            enterButton.disabled = true; // 點擊後禁用按鈕
-            enterButton.textContent = '更新中...';
-
-            const countBeforeUpdate = currentGlobalCount; // 記錄更新前的數字
-            currentGlobalCount++; // 在客戶端增加計數
-
-            showMessage(`數字已更新為: ${currentGlobalCount}`);
-            
-            // 重新導向到 Page 2 的 URL，並傳遞動畫所需的數字
-            window.location.href = `${window.location.origin}${window.location.pathname}?mode=display&prevCount=${countBeforeUpdate}&targetCount=${currentGlobalCount}`;
-        });
-
-        // 返回按鈕點擊事件處理
-        backButton.addEventListener('click', () => {
-            // 返回第一頁的 URL (移除所有參數)
-            window.location.href = `${window.location.origin}${window.location.pathname}`;
-        });
     </script>
 </body>
 </html>
