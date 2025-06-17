@@ -160,7 +160,7 @@
         }
 
 
-        /* Message box styling */
+        /* Message box styling (still included but won't show Firebase errors) */
         .message-box {
             position: fixed;
             top: 20px;
@@ -203,7 +203,7 @@
             </button>
             <p class="text-sm text-gray-500 mt-4">按下按鈕，讓魔法出現吧</p>
             <p class="text-sm mt-4 text-gray-500 opacity-70">
-                當前使用者 ID: <span id="userIdDisplay" class="font-mono break-all text-gray-600">載入中...</span>
+                <!-- User ID display is removed as there's no authentication without Firebase -->
             </p>
         </div>
 
@@ -224,20 +224,8 @@
     <div id="messageBox" class="message-box"></div>
 
     <script type="module">
-        // Firebase 相關模組導入
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        // 全域變數，由 Canvas 環境提供
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-
-        let app;
-        let db;
-        let auth;
-        let userId = null; // 初始化 userId
+        // 計數器狀態變數，現在儲存在瀏覽器記憶體中
+        let currentGlobalCount = 50000; // 從 50000 開始計算
 
         const page1 = document.getElementById('page1');
         const page2 = document.getElementById('page2');
@@ -245,12 +233,9 @@
         const backButton = document.getElementById('backButton');
         const deviceCountElement = document.getElementById('deviceCount');
         const animatedDisplayCountElement = document.getElementById('animatedDisplayCount');
-        const userIdDisplayElement = document.getElementById('userIdDisplay');
         const messageBox = document.getElementById('messageBox');
 
-        let currentGlobalCount = 0; // 儲存目前的總數
-
-        // 顯示訊息框
+        // 顯示訊息框（現在只用於通用訊息，而非 Firebase 錯誤）
         function showMessage(message, duration = 3000) {
             messageBox.textContent = message;
             messageBox.classList.add('show');
@@ -264,13 +249,19 @@
             if (pageId === 'page1') {
                 page1.classList.remove('hidden');
                 page1.style.opacity = '1';
+                // Ensure page2 is visually hidden and inactive
                 page2.classList.add('hidden');
                 page2.style.opacity = '0';
 
                 // 設定 body 背景為 page1 的漸層
                 document.body.classList.add('page1-bg');
                 document.body.classList.remove('page2-bg');
+                
+                // 更新 page1 上的計數顯示
+                deviceCountElement.textContent = currentGlobalCount;
+
             } else if (pageId === 'page2') {
+                // Ensure page1 is visually hidden and inactive
                 page1.classList.add('hidden');
                 page1.style.opacity = '0';
                 page2.classList.remove('hidden');
@@ -291,7 +282,6 @@
 
         // 數字動畫效果
         function animateCount(targetCount, initialCount) {
-            // 決定動畫的起始點
             let startCount = initialCount;
             // 如果差距太大 (>50)，則從目標數字 - 50 開始動畫
             if (targetCount - initialCount > 50) {
@@ -316,160 +306,42 @@
             requestAnimationFrame(step);
         }
 
-        // 初始化 Firebase
-        window.onload = async function() {
-            try {
-                // 如果 firebaseConfig 為空，則顯示錯誤並退出
-                if (Object.keys(firebaseConfig).length === 0) {
-                    showMessage("錯誤: Firebase 配置未提供。請檢查環境設定。", 5000);
-                    console.error("錯誤: Firebase 配置未提供。請檢查環境設定。");
-                    return;
-                }
-                
-                app = initializeApp(firebaseConfig);
-                db = getFirestore(app);
-                auth = getAuth(app);
+        // 頁面載入時的初始化邏輯
+        window.onload = function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const displayMode = urlParams.get('mode');
+            const targetCountParam = urlParams.get('targetCount');
+            const prevCountParam = urlParams.get('prevCount'); // 獲取 prevCount 參數
 
-                // 設定認證狀態變更監聽器
-                onAuthStateChanged(auth, async (user) => {
-                    if (user) {
-                        userId = user.uid;
-                        userIdDisplayElement.textContent = userId;
-                        // 確保 Firestore 監聽器啟動只在認證完成後
-                        setupFirestoreListener();
-                    } else {
-                        // 如果沒有用戶，嘗試匿名登錄或使用提供的令牌
-                        try {
-                            if (initialAuthToken) {
-                                await signInWithCustomToken(auth, initialAuthToken);
-                            } else {
-                                await signInAnonymously(auth);
-                            }
-                            // 重新檢查 onAuthStateChanged 以更新 userId
-                        } catch (error) {
-                            showMessage(`認證失敗: ${error.message}`, 5000);
-                            console.error("認證失敗:", error);
-                            userIdDisplayElement.textContent = "無法獲取使用者 ID";
-                        }
-                    }
-                });
+            // 嘗試從 URL 參數中恢復 currentGlobalCount
+            if (targetCountParam !== null) {
+                currentGlobalCount = parseInt(targetCountParam) || 50000;
+            } else {
+                // 如果沒有 targetCount 參數，則預設為 50000
+                currentGlobalCount = 50000;
+            }
 
-                // 檢查 URL 參數來決定顯示哪個頁面
-                const urlParams = new URLSearchParams(window.location.search);
-                const displayMode = urlParams.get('mode');
-                const prevCountParam = urlParams.get('prevCount');
-                const targetCountParam = urlParams.get('targetCount');
-
-                if (displayMode === 'display' && targetCountParam !== null) {
-                    // 如果是顯示模式，則嘗試解析傳遞過來的數字
-                    const parsedPrevCount = parseInt(prevCountParam) || 0;
-                    const parsedTargetCount = parseInt(targetCountParam) || 0;
-                    showPage('page2', true, parsedTargetCount, parsedPrevCount); // 播放動畫
-                } else {
-                    showPage('page1'); // 預設顯示第一頁 (輸入頁)
-                    // 在 showPage('page1') 前面或附近加入這段程式碼
-                    const urlParams = new URLSearchParams(window.location.search);
-                    const displayMode = urlParams.get('mode'); // 檢查 URL 中是否有 ?mode=display
-                    
-                    if (displayMode === 'display') {
-                        showPage('page2', false, currentGlobalCount); // 直接顯示第二頁，不播放動畫，顯示當前總數
-                    } else {
-                        showPage('page1'); // 預設顯示第一頁 (輸入頁)
-                    }
-                    
-                }
-
-            } catch (error) {
-                showMessage(`初始化應用程式失敗: ${error.message}`, 5000);
-                console.error("初始化應用程式失敗:", error);
+            if (displayMode === 'display') {
+                const parsedPrevCount = parseInt(prevCountParam) || 0; // 解析 prevCount
+                const parsedTargetCount = currentGlobalCount; // 目標是當前總數
+                showPage('page2', true, parsedTargetCount, parsedPrevCount); // 播放動畫
+            } else {
+                showPage('page1'); // 預設顯示第一頁 (輸入頁)
             }
         };
 
-        let counterDocRef; // Firestore 文件參考
-
-        // 設定 Firestore 監聽器
-        function setupFirestoreListener() {
-            if (!db || !userId) {
-                console.warn("Firestore 或使用者 ID 尚未準備好，無法設定監聽器。");
-                return;
-            }
-
-            // 公開數據路徑: /artifacts/{appId}/public/data/counter/{documentId}
-            const documentId = 'globalCounter'; // 我們將使用一個固定的 ID 來儲存全局計數
-            counterDocRef = doc(db, `artifacts/${appId}/public/data/counter/${documentId}`);
-
-            // 實時監聽計數器變化
-            onSnapshot(counterDocRef, (docSnap) => {
-                let fetchedCount = 0;
-                if (docSnap.exists()) {
-                    fetchedCount = docSnap.data().count;
-                }
-
-                // 確保計數從 50000 開始或至少是 50000
-                if (fetchedCount < 50000) {
-                    currentGlobalCount = 50000;
-                    setDoc(counterDocRef, { count: 50000 }, { merge: true }).catch(e => console.error("初始化計數器失敗:", e));
-                } else {
-                    currentGlobalCount = fetchedCount;
-                }
-
-                deviceCountElement.textContent = currentGlobalCount; // 在 Page 1 上顯示
-
-                // 如果 Page 2 當前是可見狀態且沒有正在進行動畫，則直接更新其顯示
-                // 這裡的邏輯主要用於非點擊觸發的即時更新 (例如其他裝置增加數字)
-                if (!page2.classList.contains('hidden') && animatedDisplayCountElement.textContent !== currentGlobalCount.toString()) {
-                    // 為了避免動畫中途被非點擊事件的更新打斷，這裡只在非動畫觸發時更新
-                    // 點擊事件觸發的動畫會確保正確的最終值
-                    animatedDisplayCountElement.textContent = currentGlobalCount;
-                }
-
-            }, (error) => {
-                showMessage(` Firestore 監聽錯誤: ${error.message}`, 5000);
-                console.error("Firestore 監聽錯誤:", error);
-                deviceCountElement.textContent = "錯誤";
-                animatedDisplayCountElement.textContent = "錯誤";
-            });
-        }
-
         // Enter 按鈕點擊事件處理
-        enterButton.addEventListener('click', async () => {
-            if (!counterDocRef) {
-                showMessage("Firebase 尚未初始化或使用者未登入。請稍候再試。", 3000);
-                return;
-            }
-
-            enterButton.disabled = true; // 點擊後禁用按鈕以防止快速重複點擊
+        enterButton.addEventListener('click', () => {
+            enterButton.disabled = true; // 點擊後禁用按鈕
             enterButton.textContent = '更新中...';
 
-            try {
-                const docSnap = await getDoc(counterDocRef);
-                let countBeforeUpdate = 0;
-                if (docSnap.exists()) {
-                    countBeforeUpdate = docSnap.data().count;
-                }
+            const countBeforeUpdate = currentGlobalCount; // 記錄更新前的數字
+            currentGlobalCount++; // 在客戶端增加計數
 
-                // 確保 countBeforeUpdate 也尊重 50000 的最小值
-                if (countBeforeUpdate < 50000) {
-                    countBeforeUpdate = 50000;
-                }
-
-                const newCount = countBeforeUpdate + 1;
-                await setDoc(counterDocRef, { count: newCount }); // 更新計數器
-
-                showMessage(`數字已更新為: ${newCount}`);
-                
-                // 更新成功後，重新導向到 Page 2 的 URL，並傳遞動畫所需的數字
-                window.location.href = `${window.location.origin}${window.location.pathname}?mode=display&prevCount=${countBeforeUpdate}&targetCount=${newCount}`;
-                
-                // 因為會跳轉，所以這裡不需要直接呼叫 showPage
-                // 頁面重新載入後，window.onload 中的邏輯會根據 URL 參數來顯示正確的頁面和動畫
-            } catch (error) {
-                showMessage(`更新計數失敗: ${error.message}`, 5000);
-                console.error("更新計數失敗:", error);
-            } finally {
-                enterButton.disabled = false; // 重新啟用按鈕
-                enterButton.textContent = '我同意'; // 恢復按鈕文字
-            }
+            showMessage(`數字已更新為: ${currentGlobalCount}`);
+            
+            // 重新導向到 Page 2 的 URL，並傳遞動畫所需的數字
+            window.location.href = `${window.location.origin}${window.location.pathname}?mode=display&prevCount=${countBeforeUpdate}&targetCount=${currentGlobalCount}`;
         });
 
         // 返回按鈕點擊事件處理
