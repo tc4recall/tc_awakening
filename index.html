@@ -125,8 +125,17 @@
         // 頁面載入時的初始化邏輯
         window.onload = function() {
             console.log("Input page loaded. Current URL:", window.location.href);
-            // 由於這是獨立頁面，直接顯示當前計數 (客戶端儲存)
-            deviceCountElement.textContent = currentGlobalCount;
+            // 在頁面載入時從 localStorage 讀取計數
+            const storedCount = localStorage.getItem('globalCounter');
+            if (storedCount) {
+                currentGlobalCount = parseInt(storedCount);
+            } else {
+                currentGlobalCount = 50000; // 如果沒有儲存，則從 50000 開始
+            }
+            // 確保計數不低於 50000
+            currentGlobalCount = Math.max(50000, currentGlobalCount);
+            deviceCountElement.textContent = currentGlobalCount; // 更新顯示
+            console.log("Initial currentGlobalCount (on load):", currentGlobalCount);
         };
 
         // Enter 按鈕點擊事件處理
@@ -137,6 +146,9 @@
 
             const countBeforeUpdate = currentGlobalCount; // 記錄更新前的數字
             currentGlobalCount++; // 在客戶端增加計數
+
+            // 將最新計數儲存到 localStorage
+            localStorage.setItem('globalCounter', currentGlobalCount.toString()); 
 
             showMessage(`數字已更新為: ${currentGlobalCount}`);
             
